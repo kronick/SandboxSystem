@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry kind="lib" path="lib/core.jar"/>
+	<classpathentry kind="lib" path="lib/video.jar"/>
+	<classpathentry kind="lib" path="lib/jogl.jar">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="SandboxSystem/libnative"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/opengl.jar"/>
+	<classpathentry kind="lib" path="libnative/libjogl.jnilib"/>
+	<classpathentry kind="lib" path="libnative/libjogl.so"/>
+	<classpathentry kind="lib" path="libnative/libgluegen-rt.jnilib"/>
+	<classpathentry kind="lib" path="libnative/libjogl_cg.jnilib"/>
+	<classpathentry kind="lib" path="libnative/libjogl_awt.jnilib"/>
+	<classpathentry kind="lib" path="libnative/libjogl_awt.so"/>
+	<classpathentry kind="lib" path="libnative/libjogl_cg.so"/>
+	<classpathentry kind="lib" path="libnative/libraries/gluegen-rt-natives-macosx-universal.jar"/>
+	<classpathentry kind="lib" path="libnative/libraries/gluegen-rt.jar"/>
+	<classpathentry kind="lib" path="libnative/libraries/jogl-natives-macosx-universal.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
