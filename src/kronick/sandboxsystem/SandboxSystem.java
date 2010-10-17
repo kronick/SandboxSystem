@@ -29,7 +29,7 @@ public class SandboxSystem extends PApplet{
 	ArrayList<Arm> arms = new ArrayList<Arm>();
 	//ArrayList<Truck> Trucks = new ArrayList<Truck>();
 	//ArrayList<Worker> workers = new ArrayList<Worker>();
-	//ArrayList<Elevator> elevators = new ArrayList<Elevator>();
+	ArrayList<Elevator> elevators = new ArrayList<Elevator>();
 
 	public void setup() { }
 

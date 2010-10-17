@@ -50,6 +50,11 @@ public class SystemTwo extends SandboxSystem {
 		 arms.add(new Arm(this, random(90*sc,200*sc), random(90*sc,200*sc), grid.quantize(new XY((i%w - w/2 + .5) * GRID_SIZE * 20,
 																					(i/w - ARM_COUNT/w/2 + .5) * GRID_SIZE * 20))));
 		}
+
+		elevators.add(new Elevator(this, grid.quantize(new XY(-400,200)), 20));
+		elevators.add(new Elevator(this, grid.quantize(new XY(0,200)), 20));
+		elevators.add(new Elevator(this, grid.quantize(new XY(400,200)), 20));
+
 		imageMode(CENTER);
 	}
 
@@ -58,7 +63,7 @@ public class SystemTwo extends SandboxSystem {
 		//speed = 1;
 		super.preDraw();
 
-		println(frameRate);
+		//println(frameRate);
 		/*
 		if(cam.available()) {
 			cam.read();
@@ -82,6 +87,10 @@ public class SystemTwo extends SandboxSystem {
 			arms.get(i).draw();
 		}
 
+		for(int i=0; i<elevators.size(); i++) {
+			elevators.get(i).draw();
+		}
+
 
 		super.postDraw();
 	}
@@ -96,6 +105,8 @@ public class SystemTwo extends SandboxSystem {
 				if(_a.cargo != null) { // randomly drop it off somewhere
 					float randomTheta = random(0,TWO_PI);
 					float randomR     = random(_a.r1 - _a.r2, _a.r1 + _a.r2);
+					//randomTheta = PI;
+					//randomR = _a.r1+_a.r2  - 10;
 					XY goal = grid.quantize(new XY(randomR*sin(randomTheta) + _a.origin.x, randomR*cos(randomTheta) + _a.origin.y));
 					goal.subtract(_a.origin);
 					_a.setGoal(goal);
@@ -118,6 +129,10 @@ public class SystemTwo extends SandboxSystem {
 
 		for(int i=0; i<arms.size(); i++) {
 			arms.get(i).update();
+		}
+
+		for(int i=0; i<elevators.size(); i++) {
+			elevators.get(i).update();
 		}
 	}
 
@@ -147,6 +162,17 @@ public class SystemTwo extends SandboxSystem {
 				blocks.add(nb);
 			}
 		}
+		if(key == '1') {
+			elevators.get(0).call(1, 1);
+		}
+		if(key == '5') {
+			elevators.get(0).call(5, 1);
+		}
+		if(key == '4') {
+			elevators.get(0).call(4, -1);
+		}
+		if(key == '6')
+			elevators.get(0).call(6,1);
 	}
 
 
