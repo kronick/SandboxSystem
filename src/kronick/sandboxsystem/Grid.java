@@ -6,8 +6,9 @@ public class Grid {
 	SandboxSystem parent;
 	int divisionX, divisionY;
 
-	final int EDGE = 0;
-	final int CENTER = 1;
+	static final int EDGE = 0;
+	static final int CENTER = 1;
+	static final int FLOOR = 2;
 
 	PGraphics bg;
 	PGraphics gradient;
@@ -30,6 +31,7 @@ public class Grid {
 			for(int x=-bg.width/2; x<=bg.width/2; x++) {
 				for(int y=-bg.height/2; y<=bg.height/2; y++) {
 					gradient.stroke(150, 150, (float)(150 - .3*Math.sqrt(Math.pow(x,2)/6 + Math.pow(y,2)/3)));
+					//gradient.stroke(80, 0, (float)(50 - .3*Math.sqrt(Math.pow(x,2)/6 + Math.pow(y,2)/3)));
 					gradient.point(x,y);
 				}
 			}
@@ -102,6 +104,11 @@ public class Grid {
 							(int)Math.round(pixel.y / divisionY) * divisionY);
 			return out;
 		}
+		else if(snap == FLOOR) {
+			int[] grid = pixelToGrid(pixel);
+			if(grid[1] % 2 != 0) grid[1] += 1;
+			return gridToPixel(grid);
+		}
 		else return null;
 	}
 
@@ -116,5 +123,9 @@ public class Grid {
 		out[0] = (int)Math.floor(pixel.x / divisionX);
 		out[1] = -(int)Math.ceil((pixel.y) / divisionY);
 		return out;
+	}
+
+	int positionToFloor(XY pos) {
+		return (int)Math.floor((pixelToGrid(pos)[1])/2f);
 	}
 }

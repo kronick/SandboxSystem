@@ -72,6 +72,10 @@ public class XY
     return Math.sqrt(this.x*this.x + this.y*this.y);
   }
 
+  double length2() {
+	  return this.x*this.x + this.y*this.x;
+  }
+
   XY normalize() {
     if(this.length() > 0) {
       this.scale(1/this.length());

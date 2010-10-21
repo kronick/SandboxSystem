@@ -1,6 +1,6 @@
 package kronick.sandboxsystem;
 
-//import processing.core.*;
+import java.util.ArrayList;
 
 public class Arm {
 	float r1, r2;
@@ -18,6 +18,7 @@ public class Arm {
 
 	Block cargo;
 	boolean dropAtTarget = false;
+	ArrayList<Block> reachableBlocks;
 
 	SandboxSystem parent;
 
@@ -67,10 +68,10 @@ public class Arm {
 				for(int i=parent.blocks.size()-1; i>=0; i--) {
 					b = parent.blocks.get(i);
 
-					if(b.free	&& b.position.distance2(this.end) < 9 && this.dropAtTarget) {
+					if(b.state == Block.FREE	&& b.position.distance2(this.end) < 9 && this.dropAtTarget) {
 						this.dropAtTarget = false;
 						this.cargo = b;
-						this.cargo.free = false;
+						this.cargo.state = Block.MOVING;
 					}
 				}
 			}
@@ -78,7 +79,7 @@ public class Arm {
 		else {	// Cargo in hand
 			if(this.dropAtTarget && this.goal.distance(new XY(this.end.x - this.origin.x, this.end.y - this.origin.y)) < 5) {
 				this.cargo.position = new XY(this.goal.x + this.origin.x, this.goal.y + this.origin.y);
-				this.cargo.free = true;
+				this.cargo.state = Block.FREE;
 				this.cargo = null;
 				this.dropAtTarget = false;
 			}

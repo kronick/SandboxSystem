@@ -23,29 +23,40 @@ public class SandboxSystem extends PApplet{
 	XY centerTarget;
 	boolean dragging;
 
+	XY topLeft, bottomRight;
+
 	int speed;
+
+	private int startDrawTime;
 
 	ArrayList<Block> blocks = new ArrayList<Block>();
 	ArrayList<Arm> arms = new ArrayList<Arm>();
 	//ArrayList<Truck> Trucks = new ArrayList<Truck>();
-	//ArrayList<Worker> workers = new ArrayList<Worker>();
+	ArrayList<Worker> workers = new ArrayList<Worker>();
 	ArrayList<Elevator> elevators = new ArrayList<Elevator>();
 
 	public void setup() { }
 
 	public void draw() { }
 
-	public void update() { }
-	public void update(int n) { }
+	public void updateView() {
+		topLeft = mouseToCoord(0,0);
+		bottomRight = mouseToCoord(width, height);
+	}
+	public void update(int n) {
+	}
 
 	protected void preDraw() {
+		pushMatrix();
 		translate(width/2, height/2);
 		zoom -= (zoom-zoomTarget) * .3;
-		if(abs(zoom-zoomTarget) < .005) { zoom = zoomTarget;  }
+		if(abs(zoom-zoomTarget) < .05) { zoom = zoomTarget;  }
 		scale(zoom);
 
 		center.x -= (center.x-centerTarget.x) * .3;
 		center.y -= (center.y-centerTarget.y) * .3;
+		if(abs((float)(center.x - centerTarget.x)) < .01) center.x = centerTarget.x;
+		if(abs((float)(center.y - centerTarget.y)) < .01) center.y = centerTarget.y;
 		translate((float)center.x, (float)center.y);
 
 		background(0,0,255);
@@ -53,9 +64,14 @@ public class SandboxSystem extends PApplet{
 		grid.regenerateBackground(zoom, center);
 		grid.draw(zoom, center);
 		// Update each object n times
+		int start = this.millis();
 		for(int n=0; n<speed; n++) {
 			update(n);
 		}
+
+		//if((millis()-start) > 10)
+		//	println("Update took: " + (millis()-start) + " milliseconds");
+
 
 		// Figure out which blocks are selected
 		if(selections.size() > 0) {
@@ -72,6 +88,8 @@ public class SandboxSystem extends PApplet{
 				}
 			}
 		}
+
+		startDrawTime = millis();
 	}
 
 	protected void postDraw() {
@@ -100,8 +118,17 @@ public class SandboxSystem extends PApplet{
 			}
 		}
 		popStyle();
+		popMatrix();
+
+		//if((millis()-startDrawTime) > 10)
+		//	println("Draw took: " + (millis()-startDrawTime) + " milliseconds");
 	}
 
+	public void xformBlock(Block b) {	}
+
+	public XY mouseToCoord() {
+		return mouseToCoord(mouseX, mouseY);
+	}
 	public XY mouseToCoord(int x, int y) {
 		XY clickloc = new XY(x, y);
 		clickloc.subtract(width/2, height/2);
@@ -117,7 +144,7 @@ public class SandboxSystem extends PApplet{
 
 				int[] centerBlock = grid.pixelToGrid(clickloc);
 				println(clickloc.text() + ": " + centerBlock[0] + ", " + centerBlock[1]);
-				int radius = (int)random(3,(10/(GRID_SIZE/10f)));
+				int radius = (int)random(3,(20/(GRID_SIZE/10f)));
 				for(int a=-radius-1; a<radius+1; a++) {
 					for(int b=-radius-1; b<radius+1; b++) {
 						if((sq(a) + sq(b)) < sq(radius)) {
@@ -130,7 +157,7 @@ public class SandboxSystem extends PApplet{
 		else if(mouseButton == RIGHT) {
 			if(dragging) {
 				// Finish the selection
-				selections.get(selections.size()-1)[1] = grid.quantize(mouseToCoord(mouseX, mouseY), grid.EDGE);;
+				selections.get(selections.size()-1)[1] = grid.quantize(mouseToCoord(), grid.EDGE);;
 			}
 			else {	// If the mouse wasn't dragged, there is no selection to add
 				selections.remove(selections.size()-1);
@@ -145,19 +172,21 @@ public class SandboxSystem extends PApplet{
 				selections = new ArrayList<XY[]>();
 			}
 			XY[] newSel = new XY[2];
-			newSel[0] = grid.quantize(mouseToCoord(mouseX, mouseY), grid.EDGE);;
+			newSel[0] = grid.quantize(mouseToCoord(), grid.EDGE);;
 			newSel[1] = null;
 			selections.add(newSel);
 		}
 	}
 
 	public void mouseDragged() {
-		dragging = true;
-		if(mouseButton == LEFT) {
-			centerTarget.translate((mouseX-pmouseX) / zoom, (mouseY-pmouseY) / zoom);
-		}
-		else if(mouseButton == RIGHT) {
+		if(abs(mouseX-pmouseX) > 1 || abs(mouseY-pmouseY) > 1) {
+			dragging = true;
+			if(mouseButton == LEFT) {
+				centerTarget.translate((mouseX-pmouseX) / zoom, (mouseY-pmouseY) / zoom);
+			}
+			else if(mouseButton == RIGHT) {
 
+			}
 		}
 	}
 
@@ -191,5 +220,46 @@ public class SandboxSystem extends PApplet{
 		}
 		if(point.x <= right.x && point.x >= left.x && point.y <= top.y && point.y >= bottom.y) return true;
 		else return false;
+	}
+
+	public boolean inView(XY point) {
+		return inView((float)point.x, (float)point.y);
+	}
+	public boolean inView(float x, float y) {
+		return (x >= topLeft.x && x <= bottomRight.x && y >= topLeft.y && y <= bottomRight.y);
+	}
+
+	public int XYtoPixel(XY point) {
+		XY p = point.get().subtract(center).scale(1/zoom).subtract(width/2, height/2);
+		p.y *= -1;
+		//println("good pixel: " + p.x + ", " + p.y);
+		if(p.x <= width && p.y <= height && p.x >= 0 && p.y >= 0) {
+			return (int)(p.x+p.y*width);
+		}
+		else return 0;
+	}
+
+	public boolean floorsConnected(int a, int b) {
+		// Iterate through all the elevators. Make a list of elevators that serve floor a, and ones that serve floor b.
+		// If there are no common...
+		// TODO: Bah, this needs to be recursive and generalized to work for a n-elevator route.
+		// Good practice for routing blocks across arms, too
+
+		ArrayList<Elevator> serveA = new ArrayList<Elevator>();
+		ArrayList<Elevator> serveB = new ArrayList<Elevator>();
+		Elevator _e;
+		for(int i=0; i<elevators.size(); i++) {
+			_e = elevators.get(i);
+			if(_e.servesFloor(a)) serveA.add(_e);
+			if(_e.servesFloor(b)) serveB.add(_e);
+		}
+		for(int i=0; i<serveA.size(); i++) {
+			if(serveB.contains(serveA.get(i))) return true;
+		}
+		return false;
+	}
+
+	public boolean gridConnected(int[] a, int[] b) {
+		return true;
 	}
 }
