@@ -19,10 +19,10 @@ public class SystemTwo extends SandboxSystem {
 	Capture cam;
 
 	public void setup() {
-		size(800, 600, JAVA2D);
+		size(1280, 600, JAVA2D);
 		println("System Two");
 		smooth();
-		frameRate(30);
+		frameRate(60);
 		colorMode(HSB);
 
 		//cam = new Capture(this, 43, 33, Capture.list()[3]);
@@ -42,8 +42,8 @@ public class SystemTwo extends SandboxSystem {
 		GRID_SIZE = 40;
 		zoom = 3;
 		zoomTarget = .5f;
-		center = new XY(0,0);
-		centerTarget = new XY(0,0);
+		center = new XY(0,300);
+		centerTarget = new XY(center);
 		dragging = false;
 
 		mWheel = new ZoomEvent();
@@ -60,12 +60,23 @@ public class SystemTwo extends SandboxSystem {
 		}
 		*/
 
-		elevators.add(new Elevator(this, grid.quantize(new XY(-400,200)), 20));
-		elevators.add(new Elevator(this, grid.quantize(new XY(400,200)), 20));
+		arms.add(new Arm(this, 700, 600, grid.gridToPixel(-20, -6)));
+		arms.add(new Arm(this, 700, 600, grid.gridToPixel(20, -6)));
+		arms.get(arms.size()-1).nodeScale *= .5;
+		arms.get(arms.size()-2).nodeScale *= .5;
+
+		// Create stockpile of blocks
+		for(int i=0; i<cam.width/4 * cam.height/4; i++) {
+			blocks.add(new Block(this, grid.gridToPixel(0,-12)));
+		}
+
+		elevators.add(new Elevator(this, grid.gridToPixel(-17,-6), 12));
+		elevators.add(new Elevator(this, grid.gridToPixel(16,-6), 12));
 
 		for(int i=0; i<10; i++) {
 			workers.add(new Worker(this, grid.quantize(new XY(0, random(-600,200)), Grid.FLOOR)));
 		}
+
 
 
 		imageMode(CENTER);
@@ -75,18 +86,6 @@ public class SystemTwo extends SandboxSystem {
 		speed = (int)(sq((float)mouseY / height) * 49f + 1);
 		//speed = 1;
 		super.preDraw();
-
-		//println(frameRate);
-		/*
-		if(cam.available()) {
-			cam.read();
-		}
-
-		pushMatrix();
-		scale(GRID_SIZE);
-		image(cam,0,0);
-		popMatrix();
-		*/
 
 		// Draw each object
 
@@ -130,41 +129,22 @@ public class SystemTwo extends SandboxSystem {
 				_a.dropAtTarget = true;
 
 				if(_a.cargo != null) { // randomly drop it off somewhere
-					float randomTheta = random(0,TWO_PI);
-					float randomR     = random(_a.r1 - _a.r2, _a.r1 + _a.r2);
-					//randomTheta = PI;
-					//randomR = _a.r1+_a.r2  - 10;
-					XY goal = grid.quantize(new XY(randomR*sin(randomTheta) + _a.origin.x, randomR*cos(randomTheta) + _a.origin.y));
-					goal.subtract(_a.origin);
+					// -16 to 15 by -6 to 18
+					int randomX = 0;
+					int randomY = 0;
+					boolean free = false;
+					while(!free) {
+						randomX = (int)random(-16,15);
+						randomY = (int)random(-6, 18);
+						if(this.blocksAt(randomX, randomY).size() == 0) free = true;
+					}
+					XY goal = grid.gridToPixel(randomX,randomY).subtract(_a.origin);
 					_a.setGoal(goal);
 				}
-				else { // Build a list of available blocks, randomly choose one that's within range
-					ArrayList<Block> reachableBlocks = new ArrayList<Block>();
-					for(int j=0; j<blocks.size(); j++) {
-						double dist = blocks.get(j).position.distance(_a.origin);
-						if(dist < _a.r1+_a.r2 && dist > _a.r1-_a.r2) {
-							reachableBlocks.add(blocks.get(j));
-						}
-					}
-					if(reachableBlocks.size() > 0) {
-						int t = round(random(0,reachableBlocks.size()-1));
-						_a.setGoal(reachableBlocks.get(t).position.get().subtract(_a.origin));
-					}
+				else { // Pick up a block from the stockpile
+					_a.setGoal(grid.gridToPixel(0, -12).subtract(_a.origin));
 				}
 			}
-
-			/*
-			Elevator _e;
-			for(int j=0; j<1; j++) {
-				for(int i=0; i<elevators.size(); i++) {
-					_e = elevators.get(i);
-					int randomFloor = (int)random(0, _e.height);
-					int randomDir = (random(-1,1) < 0 ? -1 : 1);
-					_e.call(randomFloor, randomDir);
-				}
-			}
-			*/
-
 
 			// WORKER LOGIC
 			// ===============================================================================
@@ -194,10 +174,26 @@ public class SystemTwo extends SandboxSystem {
 					}
 
 					if(blocksOnThisFloor.size() > 0) {
+						// Find the oldest block on this floor
+						int oldest = -1;
+						Block oldestBlock = blocksOnThisFloor.get(0);
+						for(int b=0; b<blocksOnThisFloor.size(); b++) {
+							if(blocksOnThisFloor.get(b).age > oldest) {
+								oldest = blocksOnThisFloor.get(b).age;
+								oldestBlock = blocksOnThisFloor.get(b);
+							}
+						}
+
+						XY t = oldestBlock.position.get();
+						t.y = _w.position.y;
+						_w.setTarget(t);
+
+						/*
 						Block randomBlock = blocksOnThisFloor.get((int)random(0, blocksOnThisFloor.size()-1));
 						XY t = randomBlock.position.get();
 						t.y = _w.position.y;
 						_w.setTarget(t);
+						*/
 					}
 					else if(blocks.size() > 0) {
 						// Take an elevator to the floor with the most blocks.
@@ -215,21 +211,31 @@ public class SystemTwo extends SandboxSystem {
 							floorsWithBlocks[j++] = k;
 						}
 
-						//if(floorsWithBlocks.length > 0)
-							//_w.destFloor = floorsWithBlocks[(int)random(0,floorsWithBlocks.length)];
+						if(floorsWithBlocks.length > 0)
+							_w.destFloor = floorsWithBlocks[(int)random(0,floorsWithBlocks.length)];
 
 						// Second, try to find an elevator that goes to that floor.
 						// If one doesn't exist, find the one that gets closest
 						Elevator _e;
-						Elevator targetElev = null;
+						ArrayList<Elevator> elevatorCandidates = new ArrayList<Elevator>();
 						for(int e=0; e<elevators.size(); e++) {
 							_e = elevators.get(e);
 							if(_e.servesFloor(_w.currFloor) && _e.servesFloor(_w.destFloor)) {
-								targetElev = _e;
+								elevatorCandidates.add(_e);
 							}
 						}
-						if(targetElev != null)
-							_w.goToElevator(targetElev);
+						if(elevatorCandidates.size() != 0) {
+							double minDistance = -1;
+							Elevator targetElevator = null;
+							for(int e=0; e<elevatorCandidates.size(); e++) {
+								float dist = abs((float)(elevatorCandidates.get(e).origin.x) - (float)_w.position.x);
+								if(dist < minDistance || minDistance == -1) {
+									minDistance = dist;
+									targetElevator = elevatorCandidates.get(e);
+								}
+							}
+							_w.goToElevator(targetElevator);
+						}
 					}
 
 				}

@@ -44,7 +44,7 @@ public class Block {
 
 	void update() {
 		age++;
-		if(age > 10000 && type == XFORMED) { type = STALE; }
+		if(age > 5000 && type == XFORMED) { type = STALE; }
 	}
 
 	void setXFormed() {

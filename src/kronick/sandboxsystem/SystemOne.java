@@ -20,7 +20,7 @@ public class SystemOne extends SandboxSystem {
 
 	public void setup() {
 		println("System One");
-		size(1280, 600, JAVA2D);
+		size(1920, 1080, JAVA2D);
 		smooth();
 		frameRate(60);
 		colorMode(HSB);

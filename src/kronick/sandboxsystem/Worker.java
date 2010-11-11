@@ -36,7 +36,7 @@ public class Worker {
 		this.target = this.position.get();
 		this.dPosition = new XY(0,0);
 
-		maxSpeed = 50;
+		maxSpeed = 10;
 		xFormSpeed = .5f;
 
 		headJoint = 0;

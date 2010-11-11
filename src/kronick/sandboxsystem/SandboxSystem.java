@@ -59,7 +59,7 @@ public class SandboxSystem extends PApplet{
 		if(abs((float)(center.y - centerTarget.y)) < .01) center.y = centerTarget.y;
 		translate((float)center.x, (float)center.y);
 
-		background(0,0,255);
+		background(0,0,0);
 
 		grid.regenerateBackground(zoom, center);
 		grid.draw(zoom, center);
@@ -196,7 +196,7 @@ public class SandboxSystem extends PApplet{
 		}
 		public void mouseWheelMoved(MouseWheelEvent e) {
 			zoomTarget -= e.getWheelRotation() * zoom * .05;
-			if(zoomTarget <= .1) zoomTarget = .1f;
+			if(zoomTarget <= .01) zoomTarget = .01f;
 		}
 	}
 
@@ -226,7 +226,10 @@ public class SandboxSystem extends PApplet{
 		return inView((float)point.x, (float)point.y);
 	}
 	public boolean inView(float x, float y) {
-		return (x >= topLeft.x && x <= bottomRight.x && y >= topLeft.y && y <= bottomRight.y);
+		try {
+			return (x >= topLeft.x && x <= bottomRight.x && y >= topLeft.y && y <= bottomRight.y);
+		}
+		catch (NullPointerException e) { return true; }
 	}
 
 	public int XYtoPixel(XY point) {
@@ -261,5 +264,17 @@ public class SandboxSystem extends PApplet{
 
 	public boolean gridConnected(int[] a, int[] b) {
 		return true;
+	}
+
+	ArrayList<Block> blocksAt(int x, int y) {
+		ArrayList<Block> blocksout = new ArrayList<Block>();
+		int[] pos = new int[2];
+		for(int i=0; i<blocks.size(); i++) {
+			pos = grid.pixelToGrid(blocks.get(i).position);
+			if(pos[0] == x && pos[1] == y) {
+				blocksout.add(blocks.get(i));
+			}
+		}
+		return blocksout;
 	}
 }

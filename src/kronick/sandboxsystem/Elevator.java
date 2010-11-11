@@ -27,8 +27,8 @@ public class Elevator {
 		this.baseFloor = parent.grid.positionToFloor(this.origin);
 		this.height = height;
 		this.width = 1;
-		this.maxSpeed = 5;
-		this.acceleration = .5f;
+		this.maxSpeed = 5 * parent.GRID_SIZE/40;
+		this.acceleration = .5f * parent.GRID_SIZE/40;
 		this.pause = 40;
 		this.pauseCounter = this.pause;
 		this.position = 0;
